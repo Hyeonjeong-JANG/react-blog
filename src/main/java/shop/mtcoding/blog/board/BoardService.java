@@ -1,17 +1,17 @@
 package shop.mtcoding.blog.board;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.mtcoding.blog._core.errors.exception.Exception403;
 import shop.mtcoding.blog._core.errors.exception.Exception404;
-import shop.mtcoding.blog.reply.Reply;
 import shop.mtcoding.blog.reply.ReplyJPARepository;
 import shop.mtcoding.blog.user.SessionUser;
 import shop.mtcoding.blog.user.User;
 import shop.mtcoding.blog.user.UserJPARepository;
-import shop.mtcoding.blog.user.UserService;
 
 import java.util.List;
 
@@ -23,20 +23,20 @@ public class BoardService {
     private final UserJPARepository userJPARepository;
     private final ReplyJPARepository replyJPARepository;
 
-    public BoardResponse.DTO 글조회(int boardId){
+    public BoardResponse.DTO 글조회(int boardId) {
         Board board = boardJPARepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다"));
         return new BoardResponse.DTO(board);
     }
 
     @Transactional
-    public BoardResponse.DTO 글수정(int boardId, int sessionUserId, BoardRequest.UpdateDTO reqDTO){
+    public BoardResponse.DTO 글수정(int boardId, int sessionUserId, BoardRequest.UpdateDTO reqDTO) {
         // 1. 조회 및 예외처리
         Board board = boardJPARepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다"));
 
         // 2. 권한 처리
-        if(sessionUserId != board.getUser().getId()){
+        if (sessionUserId != board.getUser().getId()) {
             throw new Exception403("게시글을 수정할 권한이 없습니다");
         }
 
@@ -48,9 +48,9 @@ public class BoardService {
     } // 더티체킹
 
     @Transactional
-    public BoardResponse.DTO 글쓰기(BoardRequest.SaveDTO reqDTO, SessionUser sessionUser){
+    public BoardResponse.DTO 글쓰기(BoardRequest.SaveDTO reqDTO, SessionUser sessionUser) {
         User user = userJPARepository.findById(sessionUser.getId()).orElseThrow();
-        Board board =boardJPARepository.save(reqDTO.toEntity(user));
+        Board board = boardJPARepository.save(reqDTO.toEntity(user));
         return new BoardResponse.DTO(board);
     }
 
@@ -59,11 +59,16 @@ public class BoardService {
         Board board = boardJPARepository.findById(boardId)
                 .orElseThrow(() -> new Exception404("게시글을 찾을 수 없습니다"));
 
-        if(sessionUserId != board.getUser().getId()){
+        if (sessionUserId != board.getUser().getId()) {
             throw new Exception403("게시글을 삭제할 권한이 없습니다");
         }
 
         boardJPARepository.deleteById(boardId);
+    }
+
+    public BoardResponse.MainV2DTO 글목록조회V2(Pageable pageable) {
+        Page<Board> boardPG = boardJPARepository.findAll(pageable);
+        return new BoardResponse.MainV2DTO(boardPG);
     }
 
     public List<BoardResponse.MainDTO> 글목록조회() {

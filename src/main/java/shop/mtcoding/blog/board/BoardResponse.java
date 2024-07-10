@@ -1,6 +1,7 @@
 package shop.mtcoding.blog.board;
 
 import lombok.Data;
+import org.springframework.data.domain.Page;
 import shop.mtcoding.blog.reply.Reply;
 import shop.mtcoding.blog.user.User;
 
@@ -40,8 +41,8 @@ public class BoardResponse {
             this.userId = board.getUser().getId();
             this.username = board.getUser().getUsername(); // join 해서 가져왔음
             this.isOwner = false;
-            if(sessionUser != null){
-                if(sessionUser.getId() == userId) isOwner = true;
+            if (sessionUser != null) {
+                if (sessionUser.getId() == userId) isOwner = true;
             }
 
             this.replies = board.getReplies().stream().map(reply -> new ReplyDTO(reply, sessionUser)).toList();
@@ -61,8 +62,8 @@ public class BoardResponse {
                 this.userId = reply.getUser().getId();
                 this.username = reply.getUser().getUsername(); // lazy loading 발동 (in query)
                 this.isOwner = false;
-                if(sessionUser != null){
-                    if(sessionUser.getId() == userId) isOwner = true;
+                if (sessionUser != null) {
+                    if (sessionUser.getId() == userId) isOwner = true;
                 }
             }
         }
@@ -78,5 +79,36 @@ public class BoardResponse {
             this.id = board.getId();
             this.title = board.getTitle();
         }
+    }
+
+    // 게시글 목록보기 화면
+    @Data
+    public static class MainV2DTO {
+        private Integer totalPage;
+        private Integer number; // 현재 페이지
+        private Boolean isFirst;
+        private Boolean isLast;
+
+        private List<BoardDTO> boards;
+
+        public MainV2DTO(Page<Board> boardPG) {
+            this.totalPage = boardPG.getTotalPages();
+            this.number = boardPG.getNumber();
+            this.isFirst = boardPG.isFirst();
+            this.isLast = boardPG.isLast();
+            this.boards = boardPG.getContent().stream().map(BoardDTO::new).toList();
+        }
+
+        @Data
+        public class BoardDTO {
+            private int id;
+            private String title;
+
+            public BoardDTO(Board board) {
+                this.id = board.getId();
+                this.title = board.getTitle();
+            }
+        }
+
     }
 }
