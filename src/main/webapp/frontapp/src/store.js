@@ -3,14 +3,15 @@ export const logout = () => ({ type: "LOGOUT" });
 
 const initState = {
   isLogin: false,
+  jwt:"",
 };
 
 const reducer = (state = initState, action) => {
   switch (action.type) {
     case "LOGIN":
-      return { isLogin: true };
+      return { isLogin: true, jwt: action.jwt };
     case "LOGOUT":
-      return { isLogin: false };
+      return { isLogin: false, jwt: "" };
     default:
       return state;
   }
